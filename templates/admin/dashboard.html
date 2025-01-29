@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - الإدارة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="static/css/admin/dashboard.css">
+    <link rel="stylesheet" href="static/css/admin/booking_admin.css">
+    <link rel="stylesheet" href="static/css/admin/manage_cars.css">
+    <link rel="stylesheet" href="static/css/admin/reviews_admin.css">
+</head>
+
+<body>
+    <button class="hamburger"><i class="fas fa-bars"></i></button>
+
+    <div class="dashboard-container">
+        <!-- الشريط الجانبي -->
+        <div class="sidebar">
+            <h2>لوحة التحكم</h2>
+            <ul>
+                <li><a href="#" onclick="chiked(1)">الصفحة الرئيسية</a></li>
+                <li><a href="#" onclick="chiked(2);fetchCars();">إدارة السيارات</a></li>
+                <li><a href="#" onclick="chiked(3);fetchBookings();">إدارة الحجوزات</a></li>
+                <li><a href="#" onclick="chiked(4);fetchReviews();">إدارة المراجعات</a></li>
+                <li><a href="#">التقارير</a></li>
+                <li><a href="#">تسجيل الخروج</a></li>
+            </ul>
+        </div>
+        <div class="container">
+            <!-- المحتوى الرئيسي -->
+            <div class="main-content" id="m1">
+                <header>
+                    <h1>مرحبًا بك في لوحة التحكم</h1>
+                </header>
+
+                <section class="stats">
+                    <div class="stat-item">
+                        <h3>إجمالي السيارات</h3>
+                        <p>{{ num_cars }}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>إجمالي الحجوزات</h3>
+                        <p>{{ num_bookings }}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>إجمالي المراجعات</h3>
+                        <p>{{ num_reviews }}</p>
+                    </div>
+                </section>
+
+                <section class="chart-container">
+                    <h2>الإحصائيات</h2>
+                    <div class="chart-wrapper">
+                        {{ graph_html|safe }}
+                    </div>
+                </section>
+            </div>
+            <div class="main-content2" id="m2">
+                <h2>إدارة السيارات</h2>
+                <!-- نموذج إضافة سيارة -->
+                <form id="car-form" class="car-form">
+                    <div class="form-group">
+                        <input type="text" name="brand" placeholder="الماركة" required>
+                        <input type="text" name="model" placeholder="الموديل" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" name="year" placeholder="السنة" min="1900" max="2099" required>
+                        <input type="number" name="price" placeholder="السعر" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <select name="fuel_type" required>
+                            <option value="" disabled selected>نوع الوقود</option>
+                            <option value="بنزين">بنزين</option>
+                            <option value="ديزل">ديزل</option>
+                            <option value="كهرباء">كهرباء</option>
+                            <option value="هجين">هجين</option>
+                        </select>
+                        <input type="number" name="engine_power" placeholder="قوة المحرك (حصان)" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="number" name="fuel_efficiency" placeholder="كفاءة الوقود (كم/لتر)" min="0"
+                            step="0.01" required>
+                        <input type="text" name="image_url" placeholder="رابط الصورة" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="description" placeholder="الوصف" rows="3" required></textarea>
+                        <select name="category" required>
+                            <option value="" disabled selected>التصنيف</option>
+                            <option value="سيارة صغيرة">سيارة صغيرة</option>
+                            <option value="سيارة سيدان">سيارة سيدان</option>
+                            <option value="سيارة دفع رباعي">سيارة دفع رباعي</option>
+                            <option value="شاحنة">شاحنة</option>
+                        </select>
+                    </div>
+                    <button type="submit">إضافة سيارة</button>
+                </form>
+
+                <!-- رسالة نجاح/خطأ -->
+                <div id="message-box" style="display:none; padding:10px; margin-top:10px;"></div>
+
+                <!-- قائمة السيارات -->
+
+
+                <h2>قائمة السيارات</h2>
+                <ul id="cars-list">
+                    <!-- يتم تحديث القائمة ديناميكيًا -->
+                </ul>
+
+
+
+                <!-- نموذج تعديل السيارة -->
+                <div id="edit-form-container"
+                    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+                    <div class="edit-form-overlay"
+                        style="background: white; padding: 20px; border-radius: 5px; width: 80%; max-width: 600px;">
+                        <h3>تعديل السيارة</h3>
+                        <form id="edit-car-form" method="POST">
+                            <input type="hidden" id="edit-car-id">
+                            <div class="form-group">
+                                <input type="text" id="edit-brand" name="brand" placeholder="الماركة" required>
+                                <input type="text" id="edit-model" name="model" placeholder="الموديل" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" id="edit-year" name="year" placeholder="السنة" required>
+                                <input type="number" id="edit-price" name="price" placeholder="السعر" required>
+                            </div>
+                            <div class="form-group">
+                                <select id="edit-fuel_type" name="fuel_type" required>
+                                    <option value="" disabled selected>نوع الوقود</option>
+                                    <option value="بنزين">بنزين</option>
+                                    <option value="ديزل">ديزل</option>
+                                    <option value="كهرباء">كهرباء</option>
+                                    <option value="هجين">هجين</option>
+                                </select>
+                                <input type="number" id="edit-engine_power" name="engine_power"
+                                    placeholder="قوة المحرك (حصان)" required>
+                            </div>
+                            <div class="form-group">
+                                <input type="number" id="edit-fuel_efficiency" name="fuel_efficiency"
+                                    placeholder="كفاءة الوقود (كم/لتر)" step="0.01" required>
+                                <input type="text" id="edit-image_url" name="image_url" placeholder="رابط الصورة"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <textarea id="edit-description" name="description" placeholder="الوصف"
+                                    required></textarea>
+                                <select id="edit-category" name="category" required>
+                                    <option value="" disabled selected>التصنيف</option>
+                                    <option value="سيارة صغيرة">سيارة صغيرة</option>
+                                    <option value="سيارة سيدان">سيارة سيدان</option>
+                                    <option value="سيارة دفع رباعي">سيارة دفع رباعي</option>
+                                    <option value="شاحنة">شاحنة</option>
+                                </select>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit">تأكيد التعديل</button>
+                                <button type="button" onclick="cancelEdit()">إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- جدول عرض السيارات -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الماركة</th>
+                                <th>الموديل</th>
+                                <th>السنة</th>
+                                <th>السعر</th>
+                                <th>الصورة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="car-list">
+                            <!-- سيتم ملء الجدول هنا -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- إدارة الحجوزات -->
+
+
+            <div class="main-content3" id="m3">
+                <h2>إدارة الحجوزات</h2>
+
+                <!-- قسم الفلاتر -->
+                <div class="filter-section">
+                    <input type="text" id="searchInput" placeholder="ابحث باسم العميل...">
+                    <select id="statusFilter">
+                        <option value="">جميع الحالات</option>
+                        <option value="pending">معلق</option>
+                        <option value="confirmed">مؤكد</option>
+                        <option value="cancelled">ملغى</option>
+                    </select>
+                </div>
+
+                <!-- جدول عرض الحجوزات -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>رقم الحجز</th>
+                                <th>اسم العميل</th>
+                                <th>السيارة</th>
+                                <th>التاريخ</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="booking-list">
+                            <!-- سيتم ملء البيانات ديناميكيًا -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- إدارة المراجعات -->
+            <div class="main-content4" id="m4">
+                <h2>إدارة التقييمات</h2>
+
+                <!-- نموذج إضافة التقييم -->
+                <div class="review-form">
+                    <input type="number" id="car_id" placeholder="معرف السيارة">
+                    <input type="text" id="user_name" placeholder="اسم المستخدم">
+                    <input type="number" id="rating" placeholder="التقييم (1-5)">
+                    <textarea id="review_text" placeholder="نص المراجعة"></textarea>
+                    <button onclick="addReview()">إضافة التقييم</button>
+                </div>
+
+                <!-- جدول عرض التقييمات -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>المعرف</th>
+                                <th>معرف السيارة</th>
+                                <th>اسم المستخدم</th>
+                                <th>التقييم</th>
+                                <th>المراجعة</th>
+                                <th>تاريخ الإنشاء</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-list">
+                            <!-- سيتم تحميل البيانات هنا -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- الروابط الخارجية -->
+    <script src="static/js/admin/booking_admin.js" defer></script>
+    <script src="static/js/admin/manage_cars.js"></script>
+    <script src="static/js/admin/reviews_admin.js"></script>
+</body>
+
+</html>

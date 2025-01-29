@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ car.brand }} {{ car.model }} - تفاصيل السيارة</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/car_details.css') }}">
+</head>
+
+<body>
+
+    <!-- شريط التنقل -->
+    <header class="navbar">
+        <div class="container">
+            <a href="/" class="logo">معرض السيارات</a>
+            <nav>
+                <ul>
+                    <li><a href="/">الرئيسية</a></li>
+                    <li><a href="#">السيارات</a></li>
+                    <li><a href="#">الحجوزات</a></li>
+                    <li><a href="#">اتصل بنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- تفاصيل السيارة -->
+
+    <div class="container">
+        <div class="car-gallery">
+            <img id="main-image" src="static/upload/{{ car.image_url }}" alt="{{ car.brand }} {{ car.model }}">
+            <div class="thumbnails">
+                <img src="static/upload/{{ car.image_url }}" onclick="changeImage(this)">
+                <img src="static/upload/{{ car.image_url2 }}" onclick="changeImage(this)">
+                <img src="static/upload/{{ car.image_url3 }}" onclick="changeImage(this)">
+            </div>
+        </div>
+
+        <div class="car-info">
+            <h1>{{ car.brand }} {{ car.model }}</h1>
+            <p class="price">السعر: ${{ car.price }}</p>
+            <p><strong>المحرك:</strong> {{ car.engine }}</p>
+            <p><strong>القوة:</strong> {{ car.horsepower }} حصان</p>
+            <p><strong>نوع الوقود:</strong> {{ car.fuel_type }}</p>
+            <p><strong>الاستهلاك:</strong> {{ car.fuel_efficiency }} كم/لتر</p>
+
+            <!-- زر الحجز -->
+            <a href="{{ url_for('booking') }}?car_id={{ car.id }}" class="btn">احجز هذه السيارة</a>
+
+            <!-- زر التقييم -->
+            <a href="{{ url_for('reviews_page', car_id=car.id) }}" class="btn btn-review">تقييم هذه السيارة</a>
+        </div>
+    </div>
+    </section>
+
+    <!-- قسم المراجعات -->
+    <section class="reviews">
+        <div class="container">
+            <h2>التقييمات والمراجعات</h2>
+
+            <!-- عرض التقييمات السابقة -->
+            <div class="review-list">
+                {% for review in reviews %}
+                <div class="review-item">
+                    <h4>{{ review.user_name }}</h4>
+                    <p class="rating">التقييم: <span class="stars">{% for _ in range(review.rating) %}⭐{% endfor
+                            %}</span></p>
+                    <p>{{ review.review_text }}</p>
+                </div>
+                {% else %}
+                <p class="no-reviews">لا توجد تقييمات بعد. كن أول من يقيم هذه السيارة!</p>
+                {% endfor %}
+            </div>
+
+            <!-- إضافة تقييم جديد -->
+            <div class="review-form">
+                <h3>إضافة تقييم</h3>
+                <form id="review-form">
+                    <input type="hidden" id="car_id" value="{{ car.id }}">
+                    <label for="user_name">اسم المستخدم:</label>
+                    <input type="text" id="user_name" required>
+
+                    <label for="rating">التقييم:</label>
+                    <div class="rating-stars">
+                        <span data-value="1">&#9733;</span>
+                        <span data-value="2">&#9733;</span>
+                        <span data-value="3">&#9733;</span>
+                        <span data-value="4">&#9733;</span>
+                        <span data-value="5">&#9733;</span>
+                    </div>
+                    <input type="hidden" id="rating">
+
+                    <label for="review_text">التعليق:</label>
+                    <textarea id="review_text" required></textarea>
+
+                    <button type="submit">إرسال التقييم</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    <section class="car-details">
+
+    </section>
+
+    <!-- الفوتر -->
+    <footer class="footer">
+        <p>جميع الحقوق محفوظة © 2025 معرض السيارات</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+
+</html>

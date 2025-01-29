@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج الحجز</title>
+    <link rel="stylesheet" href="static/css/booking.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>حجز سيارة</h2>
+        <form id="booking-form">
+            <label for="customer_name">اسم العميل:</label>
+            <input type="text" id="customer_name" required>
+
+            <label for="customer_email">البريد الإلكتروني:</label>
+            <input type="email" id="customer_email" required>
+
+            <label for="phone_number">رقم الهاتف:</label>
+            <input type="text" id="phone_number" required>
+
+            <label for="car_id">اختر السيارة:</label>
+            <select id="car_id"></select>
+
+            <label for="booking_date">تاريخ الحجز:</label>
+            <input type="date" id="booking_date" required>
+
+            <label for="booking_time">وقت الحجز:</label>
+            <input type="time" id="booking_time" required>
+
+            <button type="submit">إتمام الحجز</button>
+        </form>
+    </div>
+
+    <script src="static/js/booking.js">
+
+    </script>
+</body>
+
+</html>

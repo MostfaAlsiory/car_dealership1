@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مقارنة السيارات</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/compare.css') }}">
+</head>
+
+<body>
+
+    <!-- شريط التنقل -->
+    <header class="navbar">
+        <div class="container">
+            <a href="/" class="logo">معرض السيارات</a>
+            <nav>
+                <ul>
+                    <li><a href="/">الرئيسية</a></li>
+                    <li><a href="#">السيارات</a></li>
+                    <li><a href="#">الحجوزات</a></li>
+                    <li><a href="#">اتصل بنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- عنوان الصفحة -->
+    <section class="compare-header">
+        <div class="container">
+            <h1>مقارنة السيارات</h1>
+            <p>قارن بين السيارات المختلفة لمعرفة أيها يناسب احتياجاتك</p>
+        </div>
+    </section>
+
+    <!-- جدول المقارنة -->
+    <section class="compare-table">
+        <div class="container">
+            <h2>مقارنة السيارات</h2>
+
+            <table class="comparison-table">
+                <tr>
+                    <th>الموديل</th>
+                    <th>السعر</th>
+                    <th>القوة</th>
+                    <th>استهلاك الوقود</th>
+                </tr>
+                {% for car in cars %}
+                <tr>
+                    <td>{{ car.brand }} {{ car.model }}</td>
+                    <td>${{ car.price }}</td>
+                    <td>{{ car.horsepower }} حصان</td>
+                    <td>{{ car.fuel_consumption }} لتر/100كم</td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            <a href="/" class="btn">العودة إلى الصفحة الرئيسية</a>
+
+        </div>
+    </section>
+
+    <!-- الفوتر -->
+    <footer class="footer">
+        <p>جميع الحقوق محفوظة © 2025 معرض السيارات</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+</body>
+
+</html>

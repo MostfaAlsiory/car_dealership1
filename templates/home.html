@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض السيارات</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/compare.css') }}">
+</head>
+
+<body>
+
+    <!-- شريط التنقل -->
+    <header class="navbar">
+        <div class="container">
+            <a href="#" class="logo">معرض السيارات</a>
+            <nav>
+                <ul>
+                    <li><a href="#">الرئيسية</a></li>
+                    <li><a href="/login">الادارة</a></li>
+                    <li><a href="/bookings">الحجوزات</a></li>
+                    <li><a href="#">اتصل بنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- بانر الصفحة -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 style="color: black;">مرحبًا بك في معرض السيارات</h1>
+            <p style="color: black;">استكشف أفضل السيارات بأسعار تنافسية</p>
+            <a href="#featured-cars" class="btn">تصفح السيارات</a>
+        </div>
+    </section>
+
+    <!-- قسم البحث -->
+    <!-- قسم البحث -->
+    <div class="container search-section">
+        <h2>ابحث عن سيارتك المثالية</h2>
+        <form id="search-form">
+            <input type="text" id="brand" placeholder="ماركة السيارة">
+            <input type="number" id="max_price" placeholder="الحد الأقصى للسعر">
+            <select id="fuel_type">
+                <option value="">نوع الوقود</option>
+                <option value="Gasoline">بنزين</option>
+                <option value="Diesel">ديزل</option>
+                <option value="Electric">كهربائي</option>
+            </select>
+            <select id="sort_by">
+                <option value="price">الترتيب حسب السعر</option>
+                <option value="year">الترتيب حسب سنة الصنع</option>
+            </select>
+            <select id="sort_order">
+                <option value="asc">تصاعدي</option>
+                <option value="desc">تنازلي</option>
+            </select>
+            <br>
+            <button type="submit" class="btn">ابحث الآن</button>
+
+        </form>
+    </div>
+
+
+
+
+    <!-- قسم السيارات المميزة -->
+    <section id="featured-cars" class="container">
+        <h2>السيارات المميزة</h2>
+        <div class="car-list">
+            {% for car in featured_cars %}
+            <div class="car-card">
+                <img src="static/upload/{{ car.image_url }}" alt="{{ car.brand }} {{ car.model }}">
+                <h3>{{ car.brand }} {{ car.model }}</h3>
+                <p>السعر: ${{ car.price }}</p>
+
+                <a href="/car/{{ car.id }}" class="btn details-btn">التفاصيل</a>
+
+                <button class="btn compare-btn" id="compare-btn-{{ car.id }}" data-id="{{ car.id }}"
+                    data-brand="{{ car.brand }}" data-model="{{ car.model }}">
+                    قارن
+                </button>
+
+
+
+
+            </div>
+
+
+
+
+            {% endfor %}
+        </div>
+
+        <button id="compare-final-btn" class="btn confirm-btn" style="display: none;"
+            onclick="confirmComparison()">تأكيد المقارنة</button>
+
+    </section>
+
+    <!-- الفوتر -->
+    <footer class="footer">
+        <p>جميع الحقوق محفوظة © 2025 معرض السيارات</p>
+    </footer>
+
+
+
+
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+
+</html>

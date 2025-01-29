@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة السيارات</title>
+    <link rel="stylesheet" href="static/css/admin/dialog.css">
+</head>
+
+<body>
+
+    <!-- عرض رسائل الفلاش -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <h1>قائمة السيارات</h1>
+
+    <ul>
+        {% for car in cars %}
+        <li>{{ car[1] }} - {{ car[2] }} - {{ car[3] }} - {{ car[4] }}$</li>
+        {% endfor %}
+    </ul>
+
+</body>
+
+</html>
