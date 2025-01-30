@@ -49,8 +49,8 @@
                 <tr>
                     <td>{{ car.brand }} {{ car.model }}</td>
                     <td>${{ car.price }}</td>
-                    <td>{{ car.horsepower }} حصان</td>
-                    <td>{{ car.fuel_consumption }} لتر/100كم</td>
+                    <td>{{ car.engine_power }} حصان</td>
+                    <td>{{ car.fuel_efficiency }} لتر/100كم</td>
                 </tr>
                 {% endfor %}
             </table>
@@ -62,7 +62,7 @@
 
     <!-- الفوتر -->
     <footer class="footer">
-        <p>جميع الحقوق محفوظة © 2025 معرض السيارات</p>
+        <p>جميع الحقوق محفوظة © 2025 مصطفى السيعوري </p>
     </footer>
 
     <script src="{{ url_for('static', filename='js/compare.js') }}"></script>

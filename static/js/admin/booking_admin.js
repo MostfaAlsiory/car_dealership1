@@ -49,7 +49,6 @@ function chiked(n) {
 }
 */
 
-
 async function fetchBookings() {
     const response = await fetch('/get_bookings');
     const data = await response.json();
@@ -62,20 +61,20 @@ function updateTable(data) {
     const tableBody = document.getElementById('booking-list');
 
     tableBody.innerHTML = '';
+
     data.filter(booking =>
         booking.customer_name.toLowerCase().includes(searchInput) &&
         (statusFilter === '' || booking.status === statusFilter)
     ).forEach(booking => {
-        let statusClass = booking.status === 'pending' ? 'status-pending' :
-            booking.status === 'confirmed' ? 'status-confirmed' : 'status-cancelled';
+        let statusClass = getStatusClass(booking.status);
 
         tableBody.innerHTML += `
-            <tr>
+            <tr id="booking-${booking.id}">
                 <td data-label="رقم الحجز">${booking.id}</td>
                 <td data-label="اسم العميل">${booking.customer_name}</td>
-                <td data-label="السيارة">${booking.car_model}</td>
+                <td data-label="السيارة">${booking.brand} ${booking.model}</td>
                 <td data-label="التاريخ">${booking.booking_date}</td>
-                <td data-label="الحالة" class="${statusClass}">${booking.status}</td>
+                <td data-label="الحالة" class="status ${statusClass}" id="status-${booking.id}">${booking.status}</td>
                 <td data-label="الإجراءات" class="actions">
                     <button onclick="updateStatus(${booking.id}, 'confirmed')">تأكيد</button>
                     <button onclick="updateStatus(${booking.id}, 'cancelled')">إلغاء</button>
@@ -85,13 +84,25 @@ function updateTable(data) {
     });
 }
 
+function getStatusClass(status) {
+    return status === 'pending' ? 'status-pending' :
+        status === 'confirmed' ? 'status-confirmed' :
+            'status-cancelled';
+}
+
 async function updateStatus(id, status) {
     await fetch('/update_booking_status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status })
     });
-    fetchBookings();
+
+    // تحديث الحالة فقط بدون إعادة تحميل الجدول بالكامل
+    let statusCell = document.getElementById(`status-${id}`);
+    if (statusCell) {
+        statusCell.textContent = status;
+        statusCell.className = `status ${getStatusClass(status)}`;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

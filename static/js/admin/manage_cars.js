@@ -116,6 +116,9 @@ document.getElementById('edit-car-form').addEventListener('submit', function (e)
         });
 });
 
+
+
+
 // جلب السيارات عند تحميل الصفحة
 async function fetchCars() {
     const tableBody = document.getElementById('car-list');
@@ -124,8 +127,9 @@ async function fetchCars() {
     fetch('/get_cars')
         .then(response => response.json())
         .then(cars => {
-            cars.forEach(car => {
-                const row = `
+            // إنشاء كافة الصفوف دفعة واحدة لتفادي التكرار
+            const rows = cars.map(car => {
+                return `
                     <tr>
                         <td>${car.brand}</td>
                         <td>${car.model}</td>
@@ -138,48 +142,132 @@ async function fetchCars() {
                         </td>
                     </tr>
                 `;
-                tableBody.innerHTML += row;
-            });
+            }).join(""); // دمج جميع الصفوف في نص واحد
+
+            // إضافة الصفوف المدمجة
+            tableBody.innerHTML = rows;
         })
         .catch(error => console.error("❌ خطأ في جلب السيارات:", error));
 }
-fetchCars();
-
 
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    document.getElementById("car-form").addEventListener("submit", function (event) {
+    document.getElementById("car-form").addEventListener("submit", async function (event) {
         event.preventDefault(); // 🔴 منع إعادة تحميل الصفحة
 
         let formData = new FormData(this); // 🔹 جمع بيانات النموذج
 
-        fetch("/add_car", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json()) // 🔹 تحويل الاستجابة إلى JSON
-            .then(data => {
-                console.log("📡 Response:", data); // ✅ طباعة الاستجابة في الكونسول
+        // ✅ 1. رفع الصورة أولًا قبل إرسال باقي البيانات
+        let imageFile = formData.get("image");
+        if (imageFile && imageFile.name) {
+            let imageUploadForm = new FormData();
+            imageUploadForm.append("image", imageFile);
 
-                let messageBox = document.getElementById("message-box");
-                messageBox.textContent = data.message;
-                messageBox.style.display = "block";
-                messageBox.style.color = data.success ? "green" : "red";
-                messageBox.style.border = data.success ? "2px solid green" : "2px solid red";
-                messageBox.style.backgroundColor = data.success ? "#d4edda" : "#f8d7da";
+            try {
+                let imageResponse = await fetch("/upload_image", {
+                    method: "POST",
+                    body: imageUploadForm
+                });
 
-                if (data.success) {
-                    document.getElementById("car-form").reset(); // 🔹 إعادة تعيين النموذج
-                    fetchCars(); // ✅ تحديث الجدول مباشرة بعد الإضافة
+                let imageData = await imageResponse.json();
+                if (!imageData.success) {
+                    showMessage(imageData.message, false);
+                    return;
                 }
-            })
-            .catch(error => console.error("❌ خطأ أثناء الإرسال:", error));
+
+                formData.append("image_url", imageData.filename);
+            } catch (error) {
+                console.error("❌ خطأ أثناء رفع الصورة:", error);
+                showMessage("حدث خطأ أثناء رفع الصورة", false);
+                return;
+            }
+        }
+
+        // ✅ 2. إرسال بيانات السيارة إلى السيرفر بعد رفع الصورة
+        try {
+            let response = await fetch("/add_car", {
+                method: "POST",
+                body: formData
+            });
+
+            let data = await response.json();
+            console.log("📡 Response:", data);
+
+            showMessage(data.message, data.success);
+
+            if (data.success) {
+                document.getElementById("car-form").reset();
+                addCarToTable(data.car); // ✅ إضافة السيارة مباشرة إلى الجدول
+            }
+        } catch (error) {
+            console.error("❌ خطأ أثناء الإرسال:", error);
+            showMessage("حدث خطأ أثناء إضافة السيارة", false);
+        }
     });
 
     // ✅ تحميل السيارات عند فتح الصفحة
     fetchCars();
 });
+
+
+// ✅ تحديث الجدول مع مسحه أولًا لتجنب التكرار
+function updateTable(cars) {
+    const tableBody = document.getElementById("car-list");
+    tableBody.innerHTML = ""; // 🔴 مسح البيانات القديمة قبل التحديث
+
+    cars.forEach(car => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${car.id}</td>
+            <td>${car.brand}</td>
+            <td>${car.model}</td>
+            <td>${car.year}</td>
+            <td>${car.price}</td>
+            <td>${car.fuel_type}</td>
+            <td>${car.engine_power} HP</td>
+            <td>${car.fuel_efficiency} كم/لتر</td>
+            <td><img src="${car.image_url}" alt="صورة السيارة" width="50"></td>
+            <td>${car.category}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+// ✅ دالة لإضافة السيارة الجديدة مباشرة إلى الجدول دون إعادة تحميل القائمة كاملة
+function addCarToTable(car) {
+    const tableBody = document.getElementById("car-list");
+
+    // بدلاً من استخدام innerHTML، سنستخدم appendChild مع العنصر المضاف بشكل ديناميكي.
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td>${car.id}</td>
+        <td>${car.brand}</td>
+        <td>${car.model}</td>
+        <td>${car.year}</td>
+        <td>${car.price}</td>
+        <td>${car.fuel_type}</td>
+        <td>${car.engine_power} HP</td>
+        <td>${car.fuel_efficiency} كم/لتر</td>
+        <td><img src="${car.image_url}" alt="صورة السيارة" width="50"></td>
+        <td>${car.category}</td>
+    `;
+
+    // إضافة الصف الجديد إلى الجدول
+    tableBody.appendChild(row);
+}
+
+
+// ✅ دالة لعرض الرسائل للمستخدم
+function showMessage(message, isSuccess) {
+    let messageBox = document.getElementById("message-box");
+    messageBox.textContent = message;
+    messageBox.style.display = "block";
+    messageBox.style.color = isSuccess ? "green" : "red";
+    messageBox.style.border = isSuccess ? "2px solid green" : "2px solid red";
+    messageBox.style.backgroundColor = isSuccess ? "#d4edda" : "#f8d7da";
+}
+
 // التحكم في الشريط الجانبي
 const sidebar = document.querySelector('.sidebar');
 const hamburger = document.querySelector('.hamburger');
@@ -225,3 +313,120 @@ function chiked(num) {
 
 // تهيئة أولية
 chiked(1);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+document.getElementById('imageInput').addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('fileLabel').textContent = `تم اختيار الصورة: ${file.name}`;
+    } else {
+        document.getElementById('fileLabel').textContent = "لم يتم اختيار صورة";
+    }
+});
+
+document.getElementById('car-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const formData = new FormData(this);
+
+    // رفع الصورة أولًا
+    const imageResponse = await fetch('/upload_image', {
+        method: 'POST',
+        body: formData
+    });
+
+    const imageResult = await imageResponse.json();
+    if (!imageResult.success) {
+        alert(imageResult.message);
+        return;
+    }
+
+    // إضافة اسم الصورة إلى البيانات وإرسالها إلى السيرفر
+    formData.append('image_url', imageResult.filename);
+
+    const carResponse = await fetch('/add_car', {
+        method: 'POST',
+        body: formData
+    });
+
+    const carResult = await carResponse.json();
+    alert(carResult.message);
+});
+
+
+
+
+
+
+
+
+
+document.getElementById('imageInput').addEventListener('change', function (event) {
+    const file = event.target.files[0];
+    if (file) {
+        document.getElementById('fileLabel').textContent = `تم اختيار الصورة: ${file.name}`;
+    } else {
+        document.getElementById('fileLabel').textContent = "لم يتم اختيار صورة";
+    }
+});
+
+document.getElementById('car-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const formData = new FormData(this);
+
+    // رفع الصورة أولًا
+    const imageResponse = await fetch('/upload_image', {
+        method: 'POST',
+        body: formData
+    });
+
+    const imageResult = await imageResponse.json();
+    if (!imageResult.success) {
+        alert(imageResult.message);
+        return;
+    }
+
+    // إضافة اسم الصورة إلى البيانات وإرسالها إلى السيرفر
+    formData.append('image_url', imageResult.filename);
+
+    const carResponse = await fetch('/add_car', {
+        method: 'POST',
+        body: formData
+    });
+
+    const carResult = await carResponse.json();
+    alert(carResult.message);
+});
+
+
+
+
+
+
+
+
+
+

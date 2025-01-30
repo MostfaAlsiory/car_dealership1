@@ -61,7 +61,7 @@
             <div class="main-content2" id="m2">
                 <h2>إدارة السيارات</h2>
                 <!-- نموذج إضافة سيارة -->
-                <form id="car-form" class="car-form">
+                <form id="car-form" class="car-form" enctype="multipart/form-data">
                     <div class="form-group">
                         <input type="text" name="brand" placeholder="الماركة" required>
                         <input type="text" name="model" placeholder="الموديل" required>
@@ -83,7 +83,10 @@
                     <div class="form-group">
                         <input type="number" name="fuel_efficiency" placeholder="كفاءة الوقود (كم/لتر)" min="0"
                             step="0.01" required>
-                        <input type="text" name="image_url" placeholder="رابط الصورة" required>
+
+                        <!-- زر اختيار الصورة -->
+                        <input type="file" id="imageInput" name="image" accept="image/*" required>
+                        <span id="fileLabel">لم يتم اختيار صورة</span>
                     </div>
                     <div class="form-group">
                         <textarea name="description" placeholder="الوصف" rows="3" required></textarea>
