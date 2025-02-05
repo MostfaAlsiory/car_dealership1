@@ -73,6 +73,8 @@ function updateTable(data) {
                 <td data-label="رقم الحجز">${booking.id}</td>
                 <td data-label="اسم العميل">${booking.customer_name}</td>
                 <td data-label="السيارة">${booking.brand} ${booking.model}</td>
+                <td data-label="الإيميل"> ${booking.customer_email}</td>
+                <td data-label="رقم الهاتف"> ${booking.phone_number}</td>
                 <td data-label="التاريخ">${booking.booking_date}</td>
                 <td data-label="الحالة" class="status ${statusClass}" id="status-${booking.id}">${booking.status}</td>
                 <td data-label="الإجراءات" class="actions">

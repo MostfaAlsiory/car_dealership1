@@ -65,6 +65,7 @@ document.getElementById('edit-car-form').addEventListener('submit', function (e)
         description: document.getElementById('edit-description').value,
         category: document.getElementById('edit-category').value
     };
+    document.getElementById('edit-form-container').style.display = 'none';
 
     fetch(`/update_car/${carData.id}`, {
         method: 'POST',
@@ -88,33 +89,6 @@ document.getElementById('edit-car-form').addEventListener('submit', function (e)
 function cancelEdit() {
     document.getElementById('edit-form-container').style.display = 'none';
 }
-
-// إرسال التعديل
-document.getElementById('edit-car-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const carId = document.getElementById('edit-car-id').value;
-    const brand = document.getElementById('edit-brand').value;
-    const model = document.getElementById('edit-model').value;
-    const year = document.getElementById('edit-year').value;
-    const price = document.getElementById('edit-price').value;
-
-    fetch(`/update_car/${carId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brand, model, year, price })
-    })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                alert("تم التعديل بنجاح");
-                fetchCars();
-                cancelEdit();
-            } else {
-                alert("فشل التعديل");
-            }
-        });
-});
 
 
 
@@ -229,6 +203,8 @@ function updateTable(cars) {
             <td>${car.fuel_efficiency} كم/لتر</td>
             <td><img src="${car.image_url}" alt="صورة السيارة" width="50"></td>
             <td>${car.category}</td>
+
+            
         `;
         tableBody.appendChild(row);
     });
@@ -241,16 +217,18 @@ function addCarToTable(car) {
     const row = document.createElement("tr");
 
     row.innerHTML = `
-        <td>${car.id}</td>
-        <td>${car.brand}</td>
-        <td>${car.model}</td>
-        <td>${car.year}</td>
-        <td>${car.price}</td>
-        <td>${car.fuel_type}</td>
-        <td>${car.engine_power} HP</td>
-        <td>${car.fuel_efficiency} كم/لتر</td>
-        <td><img src="${car.image_url}" alt="صورة السيارة" width="50"></td>
-        <td>${car.category}</td>
+       
+                    <tr>
+                        <td>${car.brand}</td>
+                        <td>${car.model}</td>
+                        <td>${car.year}</td>
+                        <td>${car.price} $</td>
+                        <td><img src="static/upload/${car.image_url}" class="car-image" alt="Car Image"></td>
+                        <td>
+                            <button onclick="editCar(${car.id})">تعديل</button>
+                            <button onclick="deleteCar(${car.id})" class="delete-btn">حذف</button>
+                        </td>
+                    </tr>
     `;
 
     // إضافة الصف الجديد إلى الجدول
@@ -325,101 +303,6 @@ chiked(1);
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-document.getElementById('imageInput').addEventListener('change', function (event) {
-    const file = event.target.files[0];
-    if (file) {
-        document.getElementById('fileLabel').textContent = `تم اختيار الصورة: ${file.name}`;
-    } else {
-        document.getElementById('fileLabel').textContent = "لم يتم اختيار صورة";
-    }
-});
-
-document.getElementById('car-form').addEventListener('submit', async function (event) {
-    event.preventDefault();
-
-    const formData = new FormData(this);
-
-    // رفع الصورة أولًا
-    const imageResponse = await fetch('/upload_image', {
-        method: 'POST',
-        body: formData
-    });
-
-    const imageResult = await imageResponse.json();
-    if (!imageResult.success) {
-        alert(imageResult.message);
-        return;
-    }
-
-    // إضافة اسم الصورة إلى البيانات وإرسالها إلى السيرفر
-    formData.append('image_url', imageResult.filename);
-
-    const carResponse = await fetch('/add_car', {
-        method: 'POST',
-        body: formData
-    });
-
-    const carResult = await carResponse.json();
-    alert(carResult.message);
-});
-
-
-
-
-
-
-
-
-
-document.getElementById('imageInput').addEventListener('change', function (event) {
-    const file = event.target.files[0];
-    if (file) {
-        document.getElementById('fileLabel').textContent = `تم اختيار الصورة: ${file.name}`;
-    } else {
-        document.getElementById('fileLabel').textContent = "لم يتم اختيار صورة";
-    }
-});
-
-document.getElementById('car-form').addEventListener('submit', async function (event) {
-    event.preventDefault();
-
-    const formData = new FormData(this);
-
-    // رفع الصورة أولًا
-    const imageResponse = await fetch('/upload_image', {
-        method: 'POST',
-        body: formData
-    });
-
-    const imageResult = await imageResponse.json();
-    if (!imageResult.success) {
-        alert(imageResult.message);
-        return;
-    }
-
-    // إضافة اسم الصورة إلى البيانات وإرسالها إلى السيرفر
-    formData.append('image_url', imageResult.filename);
-
-    const carResponse = await fetch('/add_car', {
-        method: 'POST',
-        body: formData
-    });
-
-    const carResult = await carResponse.json();
-    alert(carResult.message);
-});
 
 
 

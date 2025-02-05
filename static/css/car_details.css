@@ -10,7 +10,7 @@ body {
 
 /* شريط التنقل */
 .navbar {
-    background: #333;
+    background: #34495e;
     padding: 15px 0;
     color: #fff;
 }
@@ -86,7 +86,7 @@ body {
 
 /* الفوتر */
 .footer {
-    background: #333;
+    background: #34495e;
     color: #fff;
     text-align: center;
     padding: 20px;
@@ -118,7 +118,7 @@ body {
 
 .review-item h4 {
     margin: 0;
-    color: #333;
+    color: #34495e;
 }
 
 .review-item .rating {

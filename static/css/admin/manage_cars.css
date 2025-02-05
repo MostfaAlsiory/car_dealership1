@@ -34,6 +34,32 @@ h2 {
     gap: 10px;
 }
 
+
+
+
+.form-group1 {
+    display: inline;
+    flex: 10%;
+
+    gap: 10px;
+
+}
+
+.car-form input[name='engine_power'] {
+    display: flex;
+    padding: 10px;
+    margin-bottom: 2%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.car-form input[name='fuel_type'] {
+    display: flex;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 .car-form input {
     flex: 1;
     padding: 10px;

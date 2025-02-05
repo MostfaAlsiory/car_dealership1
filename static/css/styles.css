@@ -10,7 +10,7 @@ body {
 
 /* شريط التنقل */
 .navbar {
-    background: #333;
+    background: #34495e;
     padding: 15px 0;
     color: #fff;
 }
@@ -70,7 +70,7 @@ body {
 .btn {
     display: inline-block;
     padding: 15px 30px;
-    background: #e74c3c;
+    background: #34495e;
     color: #fff;
     text-decoration: none;
     border-radius: 5px;
@@ -122,14 +122,14 @@ body {
 }
 
 .price {
-    color: #e74c3c;
+    color: #34495e;
     font-size: 1.4rem;
     font-weight: bold;
 }
 
 /* الفوتر */
 .footer {
-    background: #333;
+    background: #34495e;
     color: #fff;
     text-align: center;
     padding: 20px;
@@ -165,7 +165,7 @@ body {
 }
 
 .compare-btn {
-    background-color: #e74c3c;
+    background-color: #34495e;
     color: white;
     transition: background-color 0.3s ease;
 }

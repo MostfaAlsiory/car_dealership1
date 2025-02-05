@@ -17,7 +17,6 @@
             <nav>
                 <ul>
                     <li><a href="/">الرئيسية</a></li>
-                    <li><a href="#">السيارات</a></li>
                     <li><a href="#">الحجوزات</a></li>
                     <li><a href="#">اتصل بنا</a></li>
                 </ul>
@@ -38,21 +37,19 @@
         </div>
 
         <div class="car-info">
-            <h1>{{ car[1] }} {{ car[2] }}</h1> <!-- car[1] = brand, car[2] = model -->
-            <p class="price">السعر: ${{ car[4] }}</p> <!-- car[4] = price -->
-            <p><strong>المحرك:</strong> {{ car[5] }}</p> <!-- car[5] = engine -->
-            <p><strong>القوة:</strong> {{ car[9] }} حصان</p> <!-- car[9] = horsepower -->
-            <p><strong>نوع الوقود:</strong> {{ car[10] }}</p> <!-- car[10] = fuel_type -->
-            <p><strong>الاستهلاك:</strong> {{ car[11] }} كم/لتر</p> <!-- car[11] = fuel_efficiency -->
+            <h1>{{ car[1] }} {{ car[2] }}</h1>
+            <p class="price">السعر: ${{ car[4] }}</p>
+            <p><strong> نوع الوقود:</strong> {{ car[5] }}</p>
+            <p><strong>القوة:</strong> {{ car[6] }} حصان</p>
+            <p><strong>الفئة:</strong> {{ car[11] }}</p>
 
-            <!-- زر الحجز -->
-            <a href="/booking1" class="btn">
+            <p><strong>الاستهلاك:</strong> {{ car[7] }} كم/لتر</p>
+            <p><strong> الوصف:</strong> {{ car[10] }}</p>
+
+            <a href="/bookings?car_id={{ car[0] }}& car_name={{ car[1] }} {{ car[2] }}" class="btn">
                 احجز هذه السيارة
             </a>
-            <!-- car[0] = id -->
 
-
-            <!-- car[0] = id -->
         </div>
     </div>
 
@@ -104,7 +101,7 @@
 
     <!-- الفوتر -->
     <footer class="footer">
-        <p>جميع الحقوق محفوظة © 2025 معرض السيارات</p>
+        <p>جميع الحقوق محفوظة © 2025 مصطفى السيعوري</p>
     </footer>
 
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>

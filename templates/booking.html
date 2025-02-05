@@ -10,7 +10,7 @@
 
 <body>
     <div class="container">
-        <h2>حجز سيارة</h2>
+        <h2> {{car_id}} حجز سيارة </h2>
         <form id="booking-form">
             <label for="customer_name">اسم العميل:</label>
             <input type="text" id="customer_name" required>
@@ -21,8 +21,8 @@
             <label for="phone_number">رقم الهاتف:</label>
             <input type="text" id="phone_number" required>
 
-            <label for="car_id">اختر السيارة:</label>
-            <select id="car_id"></select>
+            <label for="car_id"> السيارة:</label>
+            <input id="car_id" value="{{car_id}}" readonly>
 
             <label for="booking_date">تاريخ الحجز:</label>
             <input type="date" id="booking_date" required>
@@ -30,7 +30,7 @@
             <label for="booking_time">وقت الحجز:</label>
             <input type="time" id="booking_time" required>
 
-            <button type="submit">إتمام الحجز</button>
+            <button type="submit" style="background-color:  #e74c3c;">إتمام الحجز</button>
         </form>
     </div>
 
