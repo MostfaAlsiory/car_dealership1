@@ -19,7 +19,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # تعديل الاتصال بقاعدة البيانات لاستخدام PostgreSQL
-def get_db_connection1():
+def get_db_connection():
     conn = psycopg2.connect(
         host="dpg-cudl8o56l47c73afcvcg-a.oregon-postgres.render.com",
         dbname="car_dealership_cf5y",  # اسم قاعدة البيانات
