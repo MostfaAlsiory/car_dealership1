@@ -187,24 +187,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-//من اجل التقييمات وتحديثها
 document.addEventListener('DOMContentLoaded', function () {
-    const stars = document.querySelectorAll('.rating-stars span');
+    const stars = document.querySelectorAll('.rating-stars .star');
     const ratingInput = document.getElementById('rating');
 
     stars.forEach(star => {
         star.addEventListener('click', function () {
             const selectedValue = this.getAttribute('data-value');
-
-            if (ratingInput.value == selectedValue) {
-                // إلغاء التقييم عند النقر مرة أخرى على نفس النجمة
-                ratingInput.value = '';
-                resetStars();
-            } else {
-                // تحديد التقييم
-                ratingInput.value = selectedValue;
-                highlightStars(selectedValue);
-            }
+            ratingInput.value = selectedValue;
+            highlightStars(selectedValue);
         });
     });
 
@@ -216,10 +207,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 star.classList.remove('selected');
             }
         });
-    }
-
-    function resetStars() {
-        stars.forEach(star => star.classList.remove('selected'));
     }
 
     // إرسال التقييم
@@ -249,3 +236,4 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => console.error('Error:', error));
     });
 });
+

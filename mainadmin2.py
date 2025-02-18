@@ -1,5 +1,5 @@
 import plotly.express as px
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify,flash
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import psycopg2
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -9,6 +9,11 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+
+
+
+
+
 UPLOAD_FOLDER = 'static/upload'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -16,6 +21,10 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #  التحقق من الامتداد المسموح به
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+
 
 # تعديل الاتصال بقاعدة البيانات لاستخدام PostgreSQL
 def get_db_connection():
@@ -28,286 +37,28 @@ def get_db_connection():
     )
     return conn
 
-def get_db_connection1():
-
-    conn = psycopg2.connect(host="localhost",dbname="car_dealership",  user="postgres",  password="root", port="5432" )
-    return conn
-
-
-
-
-
-@app.after_request
-def add_header(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
-def login_user(username, password):
-    """تسجيل الدخول."""
-    try:
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            # التحقق من المستخدم بالاسم 
-            print("################## true")
-            sql = "SELECT * FROM users WHERE username = %s"
-            cursor.execute(sql,( username,))
-            user = cursor.fetchone()
-            print(user)
-            if user and user[3] == password:  # user[3] هو الحقل الذي يحتوي على كلمة المرور
-                session['id'] = user[0]
-                session['username'] = user[1]
-                print(f"################## {user[3]}")
-                return True, "تم تسجيل الدخول بنجاح!"
-            else:
-                return False, "البريد الإلكتروني أو كلمة المرور غير صحيحة."
-    except Exception as e:
-        return False, f"حدث خطأ أثناء تسجيل الدخول: {str(e)}"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@app.route('/')
-def home():
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT * FROM cars")
-        featured_cars = cursor.fetchall()
-    conn.close()
-    return render_template('home.html', featured_cars=featured_cars)
-
-
-@app.route('/car/<int:car_id>')
-def car_details(car_id):
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT * FROM cars WHERE id = %s", (car_id,))
-        car = cursor.fetchone()  # car هي tuple
-        cursor.execute("SELECT * FROM reviews WHERE car_id = %s", (car_id,))
-        reviews = cursor.fetchall()  # reviews هي قائمة من الـ tuples
-    conn.close()
-    # إذا كنت تستخدم الفهارس للوصول إلى الحقول
-    if car:
-        car_id = car[0]  # الحقل الأول (id)
-        car_brand = car[1]  # الحقل الثاني (brand)
-        car_model = car[2]  # الحقل الثالث (model)
-        # يمكنني إضافة بقية الحقول هنا بنفس الطريقة
-    return render_template('car_details.html', car=car, reviews=reviews)
-
-
-@app.route('/compare')
-def compare():
-    car_ids = request.args.get('car_ids')
-    if car_ids:
-        try:
-            ids_list = tuple(map(int, car_ids.split(',')))  # تحويل القيم إلى أعداد صحيحة
-            placeholders = ','.join(['%s'] * len(ids_list))
-            query = f"SELECT id, brand, model, price, engine_power, fuel_efficiency FROM cars WHERE id IN ({placeholders})"
-            conn = get_db_connection()
-            with conn.cursor() as cursor:
-                cursor.execute(query, ids_list)
-                cars = cursor.fetchall()
-            conn.close()
-            car_list = []
-            for car in cars:
-                car_dict = {
-                    "id": car[0],
-                    "brand": car[1],
-                    "model": car[2],
-                    "price": car[3],
-                    "engine_power": car[4],
-                    "fuel_efficiency": car[5]
-                }
-                car_list.append(car_dict)
-        except Exception as e:
-            print(f"خطأ أثناء جلب البيانات: {e}")
-            car_list = []
-    else:
-        car_list = []
-    return render_template('compare.html', cars=car_list)
-
-
-
-@app.route('/bookings')
-def booking():
-    car_id=request.args.get("car_id")
-    car_name=request.args.get("car_name")
-    print(car_name)
-    return render_template("booking.html",car_id=car_id,car_name=car_name)
-
-
-@app.route('/get_cars4', methods=['GET'])
-def get_cars4():
-    brand = request.args.get('brand', '').strip()
-    max_price = request.args.get('max_price', '').strip()
-    fuel_type = request.args.get('fuel_type', '').strip()
-    sort_by = request.args.get('sort_by', 'price')  # الترتيب الافتراضي
-    sort_order = request.args.get('sort_order', 'asc')  # الترتيب تصاعدي افتراضيًا
-    query = "SELECT id, brand, model, year, price, fuel_type, image_url FROM cars WHERE 1=1"
-    params = []
-    if brand:
-        query += " AND brand LIKE %s"
-        params.append(f"%{brand}%")
-    if max_price:
-        query += " AND price <= %s"
-        params.append(max_price)
-    if fuel_type:
-        query += " AND fuel_type = %s"
-        params.append(fuel_type)
-    if sort_by in ['price', 'year']:
-        query += f" ORDER BY {sort_by} {sort_order}"
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-
-    # تحويل النتائج إلى قائمة من القواميس
-    cars = []
-    for row in rows:
-        car = {
-            'id': row[0],
-            'brand': row[1],
-            'model': row[2],
-            'year': row[3],
-            'price': row[4],
-            'fuel_type': row[5],
-            'image_url': row[6]
-        }
-        cars.append(car)
-    cursor.close()
-    conn.close()
-    return jsonify(cars)
-
-
-
-@app.route('/submit_review', methods=['POST'])
-def submit_review():
-    try:
-        data = request.json
-        if not all(k in data for k in ('car_id', 'user_name', 'rating', 'review_text')):
-            return jsonify({"success": False, "message": "بيانات غير مكتملة"}), 400
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        sql = """
-            INSERT INTO reviews (car_id, user_name, rating, review_text, created_at)
-            VALUES (%s, %s, %s, %s, NOW())
-            RETURNING id, car_id, user_name, rating, review_text, created_at
-        """
-        cursor.execute(sql, (data['car_id'], data['user_name'], data['rating'], data['review_text']))
-        review = cursor.fetchone()  
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return jsonify({
-            "success": True,
-            "message": "تم إرسال التقييم بنجاح!",
-        })
-
-    except Exception as e:
-        return jsonify({"success": False, "message": f"حدث خطأ: {str(e)}"}), 500
-
-
-@app.route('/reviews/<int:car_id>')
-def reviews_page(car_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT id, user_name, rating, review_text, created_at FROM reviews WHERE car_id = %s", (car_id,))
-        reviews = cursor.fetchall()
-        cursor.execute("SELECT brand, model FROM cars WHERE id = %s", (car_id,))
-        car = cursor.fetchone()
-        if not car:
-            return "السيارة غير موجودة!", 404
-        return render_template('reviews.html', car=car, reviews=reviews, car_id=car_id)
-    except Exception as e:
-        return f"حدث خطأ: {str(e)}", 500
-    finally:
-        cursor.close()
-        conn.close()
-
-
-
-@app.route('/submit_booking', methods=['POST'])
-def submit_booking():
-    data = request.json  # استقبال البيانات من الطلب
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    sql = """
-        INSERT INTO bookings (customer_name, customer_email, phone_number, car_id, booking_date, booking_time, status, created_at)
-        VALUES (%s, %s, %s, %s, %s, %s, 'pending', NOW())
-    """
-    values = (
-        data['customer_name'],
-        data['customer_email'],
-        data['phone_number'],
-        data['car_id'],
-        data['booking_date'],
-        data['booking_time']
-    )
-    cursor.execute(sql, values)
-    conn.commit()
-    conn.close()
-    return jsonify({"message": "تم حجز السيارة بنجاح!"})
-
-@app.route("/login_page")
-def login_page():
+@app.route("/login")
+def index():
     return render_template("admin/login.html")
 
-
-
+# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    global admin_name
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print(f"{username,password}")
-        success, message = login_user(username, password)
-        if success :
-            admin_name=session['username']
+        
+        # Check username and password (this should be replaced with actual validation)
+        if username == 'admin' and password == 'admin123':
+            session['logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
         else:
-            admin_name=""
-        flash(message, "success" if success else "danger")
-        return redirect('/admin' if success    else   '/login')  #هنا لا يتم دخول الاالمستخدمين المدراء فقط
-   
+            return 'Invalid credentials, please try again.'
+
     return render_template('admin/login.html')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @app.route('/admin')
 def admin_dashboard():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute('SELECT COUNT(*) FROM cars')
@@ -334,17 +85,17 @@ def admin_dashboard():
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
         )
+
         graph_html = pio.to_html(fig, full_html=False, config={'responsive': True})
         conn.close()
+
         return render_template('admin/dashboard.html', graph_html=graph_html, num_cars=num_cars, num_bookings=num_bookings, num_reviews=num_reviews)
-
-
 @app.route('/get_bookings')
 def get_bookings():
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute("""
-            SELECT bookings.id, bookings.customer_name, cars.brand, cars.model,bookings.customer_email,bookings.phone_number, bookings.booking_date, bookings.status
+            SELECT bookings.id, bookings.customer_name, cars.brand, cars.model, bookings.booking_date, bookings.status
             FROM bookings
             JOIN cars ON bookings.car_id = cars.id
         """)
@@ -381,15 +132,23 @@ def get_cars():
 def upload_image():
     if 'image' not in request.files:
         return jsonify({"success": False, "message": "لا توجد صورة مرفوعة"})
+
     file = request.files['image']
+
     if file.filename == '':
         return jsonify({"success": False, "message": "يجب اختيار صورة"})
+
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         return jsonify({"success": True, "filename": filename})
+
     return jsonify({"success": False, "message": "صيغة الملف غير مدعومة"})
+
+
+
+
 
 
 @app.route('/add_car', methods=['POST'])
@@ -403,15 +162,17 @@ def add_car():
         fuel_type = request.form['fuel_type']
         engine_power = request.form['engine_power']
         fuel_efficiency = request.form['fuel_efficiency']
-        image_url = request.form.get('image_url', '')  #  اسم الصورة بعد الرفع
+        image_url = request.form.get('image_url', '')  # 🔹 اسم الصورة بعد الرفع
         description = request.form['description']
         category = request.form['category']
+
         with conn.cursor() as cursor:
             sql = """INSERT INTO cars (brand, model, year, price, fuel_type, engine_power, fuel_efficiency, image_url, description, category) 
                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id"""
             cursor.execute(sql, (brand, model, year, price, fuel_type, engine_power, fuel_efficiency, image_url, description, category))
-            car_id = cursor.fetchone()[0]  #  جلب معرف السيارة الجديدة
+            car_id = cursor.fetchone()[0]  # 🔹 جلب معرف السيارة الجديدة
             conn.commit()
+
         return jsonify({
             "success": True,
             "message": "تمت إضافة السيارة بنجاح!",
@@ -454,6 +215,13 @@ def delete_car(car_id):
 
 
 
+
+
+
+
+
+
+
 # جلب بيانات سيارة محددة
 @app.route('/get_car1/<int:car_id>')
 def get_car1(car_id):
@@ -473,8 +241,8 @@ def get_car1(car_id):
             'engine_power': car[6],
             'fuel_efficiency': car[7],
             'image_url': car[8],
-            'description': car[10],
-            'category': car[11]
+            'description': car[9],
+            'category': car[10]
         })
     return jsonify({'error': 'Car not found'}), 404
 
@@ -487,7 +255,7 @@ def update_car(car_id):
         with conn.cursor() as cursor:
             sql = """UPDATE cars SET 
                     brand=%s, model=%s, year=%s, price=%s,
-                    fuel_type=%s, engine_power=%s, fuel_efficiency=%s,image_url=%s,
+                    fuel_type=%s, engine_power=%s, fuel_efficiency=%s,
                     description=%s, category=%s
                     WHERE id=%s"""
             cursor.execute(sql, (
@@ -498,7 +266,6 @@ def update_car(car_id):
                 data['fuel_type'],
                 data['engine_power'],
                 data['fuel_efficiency'],
-                data['image_url'],
                 data['description'],
                 data['category'],
                 car_id
@@ -512,6 +279,18 @@ def update_car(car_id):
         conn.close()
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 @app.route('/get_reviews')
 def get_reviews():
     conn = get_db_connection()
@@ -522,7 +301,6 @@ def get_reviews():
         reviews = [dict(zip(columns, row)) for row in result]
         conn.close()
         return jsonify(reviews)
-
 
 @app.route('/add_review', methods=['POST'])
 def add_review():
@@ -537,8 +315,6 @@ def add_review():
     finally:
         conn.close()
 
-
-
 @app.route('/delete_review/<int:review_id>', methods=['DELETE'])
 def delete_review(review_id):
     conn = get_db_connection()
@@ -550,17 +326,235 @@ def delete_review(review_id):
     finally:
         conn.close()
 
-@app.route('/call')
-def call():
-    return render_template("call.html")
 
-# تسجيل الخروج
-@app.route('/logout')
-def logout():
 
-    session.clear()
-    flash("تم تسجيل الخروج بنجاح.", "info")
-    return redirect(url_for('login'))
+
+
+
+
+
+
+@app.route('/')
+def home():
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM cars")
+        featured_cars = cursor.fetchall()
+    conn.close()
+    return render_template('home.html', featured_cars=featured_cars)
+
+@app.route('/car/<int:car_id>')
+def car_details(car_id):
+    conn = get_db_connection()
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT * FROM cars WHERE id = %s", (car_id,))
+        car = cursor.fetchone()  # car هي tuple
+        cursor.execute("SELECT * FROM reviews WHERE car_id = %s", (car_id,))
+        reviews = cursor.fetchall()  # reviews هي قائمة من الـ tuples
+    conn.close()
+
+    # إذا كنت تستخدم الفهارس للوصول إلى الحقول
+    if car:
+        car_id = car[0]  # الحقل الأول (id)
+        car_brand = car[1]  # الحقل الثاني (brand)
+        car_model = car[2]  # الحقل الثالث (model)
+        # يمكنك إضافة بقية الحقول هنا بنفس الطريقة
+
+    return render_template('car_details.html', car=car, reviews=reviews)
+@app.route('/compare')
+def compare():
+    car_ids = request.args.get('car_ids')
+    if car_ids:
+        try:
+            ids_list = tuple(map(int, car_ids.split(',')))  # تحويل القيم إلى أعداد صحيحة
+            placeholders = ','.join(['%s'] * len(ids_list))
+            query = f"SELECT id, brand, model, price, engine_power, fuel_efficiency FROM cars WHERE id IN ({placeholders})"
+
+            conn = get_db_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(query, ids_list)
+                cars = cursor.fetchall()
+
+            conn.close()
+
+            # تحويل البيانات إلى شكل قائمة من القواميس لسهولة التعامل معها في القالب
+            car_list = []
+            for car in cars:
+                car_dict = {
+                    "id": car[0],
+                    "brand": car[1],
+                    "model": car[2],
+                    "price": car[3],
+                    "engine_power": car[4],
+                    "fuel_efficiency": car[5]
+                }
+                car_list.append(car_dict)
+
+        except Exception as e:
+            print(f"خطأ أثناء جلب البيانات: {e}")
+            car_list = []
+
+    else:
+        car_list = []
+
+    return render_template('compare.html', cars=car_list)
+
+@app.route('/bookings')
+def booking():
+    return render_template("booking.html")
+
+
+
+
+@app.route('/get_cars4', methods=['GET'])
+def get_cars4():
+    brand = request.args.get('brand', '').strip()
+    max_price = request.args.get('max_price', '').strip()
+    fuel_type = request.args.get('fuel_type', '').strip()
+    sort_by = request.args.get('sort_by', 'price')  # الترتيب الافتراضي
+    sort_order = request.args.get('sort_order', 'asc')  # الترتيب تصاعدي افتراضيًا
+
+    query = "SELECT id, brand, model, year, price, fuel_type, image_url FROM cars WHERE 1=1"
+    params = []
+
+    if brand:
+        query += " AND brand LIKE %s"
+        params.append(f"%{brand}%")
+    
+    if max_price:
+        query += " AND price <= %s"
+        params.append(max_price)
+
+    if fuel_type:
+        query += " AND fuel_type = %s"
+        params.append(fuel_type)
+
+    if sort_by in ['price', 'year']:
+        query += f" ORDER BY {sort_by} {sort_order}"
+
+    # الاتصال بقاعدة البيانات
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(query, params)
+    rows = cursor.fetchall()
+
+    # تحويل النتائج إلى قائمة من القواميس
+    cars = []
+    for row in rows:
+        car = {
+            'id': row[0],
+            'brand': row[1],
+            'model': row[2],
+            'year': row[3],
+            'price': row[4],
+            'fuel_type': row[5],
+            'image_url': row[6]
+        }
+        cars.append(car)
+
+    cursor.close()
+    conn.close()
+    
+    return jsonify(cars)
+
+@app.route('/submit_review', methods=['POST'])
+def submit_review():
+    try:
+        data = request.json
+
+        # التحقق من البيانات المدخلة
+        if not all(k in data for k in ('car_id', 'user_name', 'rating', 'review_text')):
+            return jsonify({"success": False, "message": "بيانات غير مكتملة"}), 400
+
+        # فتح اتصال بقاعدة البيانات
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # تنفيذ الإدراج
+        sql = """
+            INSERT INTO reviews (car_id, user_name, rating, review_text, created_at)
+            VALUES (%s, %s, %s, %s, NOW())
+            RETURNING id, car_id, user_name, rating, review_text, created_at
+        """
+        cursor.execute(sql, (data['car_id'], data['user_name'], data['rating'], data['review_text']))
+        review = cursor.fetchone()  # استرجاع البيانات التي تم إدراجها
+
+        # حفظ التغييرات
+        conn.commit()
+
+        # إغلاق الاتصال
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "success": True,
+            "message": "تم إرسال التقييم بنجاح!",
+        })
+
+    except Exception as e:
+        return jsonify({"success": False, "message": f"حدث خطأ: {str(e)}"}), 500
+
+
+@app.route('/reviews/<int:car_id>')
+def reviews_page(car_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # جلب التقييمات الخاصة بالسيارة المطلوبة
+        cursor.execute("SELECT id, user_name, rating, review_text, created_at FROM reviews WHERE car_id = %s", (car_id,))
+        reviews = cursor.fetchall()
+
+        # جلب بيانات السيارة المرتبطة بالتقييمات
+        cursor.execute("SELECT brand, model FROM cars WHERE id = %s", (car_id,))
+        car = cursor.fetchone()
+
+        # التحقق مما إذا كانت السيارة موجودة
+        if not car:
+            return "السيارة غير موجودة!", 404
+
+        return render_template('reviews.html', car=car, reviews=reviews, car_id=car_id)
+    
+    except Exception as e:
+        return f"حدث خطأ: {str(e)}", 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+@app.route('/submit_booking', methods=['POST'])
+def submit_booking():
+    data = request.json  # استقبال البيانات من الطلب
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    sql = """
+        INSERT INTO bookings (customer_name, customer_email, phone_number, car_id, booking_date, booking_time, status, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, 'pending', NOW())
+    """
+    values = (
+        data['customer_name'],
+        data['customer_email'],
+        data['phone_number'],
+        data['car_id'],
+        data['booking_date'],
+        data['booking_time']
+    )
+
+    cursor.execute(sql, values)
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "تم حجز السيارة بنجاح!"})
+
+
+
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

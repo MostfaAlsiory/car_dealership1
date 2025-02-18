@@ -1,5 +1,9 @@
 
-
+window.onload = function () {
+    if (!sessionStorage.getItem("logged_in")) {
+        window.location.href = "/login";
+    }
+};
 // Sidebar toggle functionality for small screens
 const sidebar = document.querySelector('.sidebar');
 const toggleButton = document.createElement('button');

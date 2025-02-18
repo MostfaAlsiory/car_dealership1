@@ -1,5 +1,5 @@
 import plotly.express as px
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify,flash
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import psycopg2
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
 
 UPLOAD_FOLDER = 'static/upload'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -27,59 +28,6 @@ def get_db_connection():
         port="5432"  # أو رقم المنفذ الذي تستخدمه
     )
     return conn
-
-def get_db_connection1():
-
-    conn = psycopg2.connect(host="localhost",dbname="car_dealership",  user="postgres",  password="root", port="5432" )
-    return conn
-
-
-
-
-
-@app.after_request
-def add_header(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
-
-
-def login_user(username, password):
-    """تسجيل الدخول."""
-    try:
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            # التحقق من المستخدم بالاسم 
-            print("################## true")
-            sql = "SELECT * FROM users WHERE username = %s"
-            cursor.execute(sql,( username,))
-            user = cursor.fetchone()
-            print(user)
-            if user and user[3] == password:  # user[3] هو الحقل الذي يحتوي على كلمة المرور
-                session['id'] = user[0]
-                session['username'] = user[1]
-                print(f"################## {user[3]}")
-                return True, "تم تسجيل الدخول بنجاح!"
-            else:
-                return False, "البريد الإلكتروني أو كلمة المرور غير صحيحة."
-    except Exception as e:
-        return False, f"حدث خطأ أثناء تسجيل الدخول: {str(e)}"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @app.route('/')
@@ -198,7 +146,6 @@ def get_cars4():
 @app.route('/submit_review', methods=['POST'])
 def submit_review():
     try:
-        data = request.json
         if not all(k in data for k in ('car_id', 'user_name', 'rating', 'review_text')):
             return jsonify({"success": False, "message": "بيانات غير مكتملة"}), 400
         conn = get_db_connection()
@@ -264,50 +211,27 @@ def submit_booking():
     conn.close()
     return jsonify({"message": "تم حجز السيارة بنجاح!"})
 
-@app.route("/login_page")
-def login_page():
+@app.route("/login")
+def index():
     return render_template("admin/login.html")
 
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    global admin_name
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print(f"{username,password}")
-        success, message = login_user(username, password)
-        if success :
-            admin_name=session['username']
+        if username == 'mostfa' and password == 'mostfa123':
+            session['logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
         else:
-            admin_name=""
-        flash(message, "success" if success else "danger")
-        return redirect('/admin' if success    else   '/login')  #هنا لا يتم دخول الاالمستخدمين المدراء فقط
-   
+            return 'Invalid credentials, please try again.'
+
     return render_template('admin/login.html')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @app.route('/admin')
 def admin_dashboard():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute('SELECT COUNT(*) FROM cars')
@@ -473,8 +397,8 @@ def get_car1(car_id):
             'engine_power': car[6],
             'fuel_efficiency': car[7],
             'image_url': car[8],
-            'description': car[10],
-            'category': car[11]
+            'description': car[9],
+            'category': car[10]
         })
     return jsonify({'error': 'Car not found'}), 404
 
@@ -487,7 +411,7 @@ def update_car(car_id):
         with conn.cursor() as cursor:
             sql = """UPDATE cars SET 
                     brand=%s, model=%s, year=%s, price=%s,
-                    fuel_type=%s, engine_power=%s, fuel_efficiency=%s,image_url=%s,
+                    fuel_type=%s, engine_power=%s, fuel_efficiency=%s,
                     description=%s, category=%s
                     WHERE id=%s"""
             cursor.execute(sql, (
@@ -498,7 +422,6 @@ def update_car(car_id):
                 data['fuel_type'],
                 data['engine_power'],
                 data['fuel_efficiency'],
-                data['image_url'],
                 data['description'],
                 data['category'],
                 car_id
@@ -557,9 +480,8 @@ def call():
 # تسجيل الخروج
 @app.route('/logout')
 def logout():
-
-    session.clear()
-    flash("تم تسجيل الخروج بنجاح.", "info")
+   # session.clear()
+   # flash("تم تسجيل الخروج بنجاح.", "info")
     return redirect(url_for('login'))
 
 if __name__ == "__main__":

@@ -49,6 +49,7 @@ body {
 
 /* جدول المقارنة */
 .compare-table {
+    margin: 20px;
     padding: 50px 0;
 }
 

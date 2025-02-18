@@ -6,7 +6,7 @@ function deleteCar(carId) {
     })
         .then(response => response.json())
         .then(data => {
-            console.log("📡 Response:", data); // ✅ طباعة الاستجابة في الكونسول
+            console.log("📡 Response:", data); //  طباعة الاستجابة في الكونسول
 
             let messageBox = document.getElementById("message-box");
             messageBox.textContent = data.message;
@@ -16,7 +16,7 @@ function deleteCar(carId) {
             messageBox.style.backgroundColor = data.success ? "#d4edda" : "#f8d7da";
 
             if (data.success) {
-                fetchCars(); // ✅ تحديث الجدول مباشرة بعد الحذف
+                fetchCars(); //  تحديث الجدول مباشرة بعد الحذف
             }
         })
         .catch(error => console.error("❌ خطأ أثناء الحذف:", error));
@@ -24,29 +24,35 @@ function deleteCar(carId) {
 
 
 
-
-
 function editCar(id) {
     fetch(`/get_car1/${id}`)
         .then(response => response.json())
         .then(car => {
-            // ملء جميع الحقول
+            // ملء الحقول النصية والرقمية
             document.getElementById('edit-car-id').value = car.id;
             document.getElementById('edit-brand').value = car.brand;
             document.getElementById('edit-model').value = car.model;
             document.getElementById('edit-year').value = car.year;
             document.getElementById('edit-price').value = car.price;
-            document.getElementById('edit-fuel_type').value = car.fuel_type;
             document.getElementById('edit-engine_power').value = car.engine_power;
             document.getElementById('edit-fuel_efficiency').value = car.fuel_efficiency;
             document.getElementById('edit-image_url').value = car.image_url;
             document.getElementById('edit-description').value = car.description;
+
+            // تعيين القيم الافتراضية لقائمة "نوع الوقود"
+            document.getElementById('edit-fuel_type').value = car.fuel_type;
+
+            // تعيين القيم الافتراضية لقائمة "التصنيف"
             document.getElementById('edit-category').value = car.category;
+
+
+
 
             // إظهار النموذج
             document.getElementById('edit-form-container').style.display = 'flex';
         })
         .catch(error => console.error('Error:', error));
+
 }
 
 document.getElementById('edit-car-form').addEventListener('submit', function (e) {
@@ -91,8 +97,6 @@ function cancelEdit() {
 }
 
 
-
-
 // جلب السيارات عند تحميل الصفحة
 async function fetchCars() {
     const tableBody = document.getElementById('car-list');
@@ -126,13 +130,18 @@ async function fetchCars() {
 
 
 
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("car-form").addEventListener("submit", async function (event) {
         event.preventDefault(); // 🔴 منع إعادة تحميل الصفحة
 
         let formData = new FormData(this); // 🔹 جمع بيانات النموذج
 
-        // ✅ 1. رفع الصورة أولًا قبل إرسال باقي البيانات
+        //  1. رفع الصورة أولًا قبل إرسال باقي البيانات
         let imageFile = formData.get("image");
         if (imageFile && imageFile.name) {
             let imageUploadForm = new FormData();
@@ -158,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // ✅ 2. إرسال بيانات السيارة إلى السيرفر بعد رفع الصورة
+        //  2. إرسال بيانات السيارة إلى السيرفر بعد رفع الصورة
         try {
             let response = await fetch("/add_car", {
                 method: "POST",
@@ -172,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (data.success) {
                 document.getElementById("car-form").reset();
-                addCarToTable(data.car); // ✅ إضافة السيارة مباشرة إلى الجدول
+                addCarToTable(data.car); //  إضافة السيارة مباشرة إلى الجدول
             }
         } catch (error) {
             console.error("❌ خطأ أثناء الإرسال:", error);
@@ -180,15 +189,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // ✅ تحميل السيارات عند فتح الصفحة
+    //  تحميل السيارات عند فتح الصفحة
     fetchCars();
 });
 
 
-// ✅ تحديث الجدول مع مسحه أولًا لتجنب التكرار
+
+
+
+
+
+//  تحديث الجدول مع مسحه أولًا لتجنب التكرار
 function updateTable(cars) {
     const tableBody = document.getElementById("car-list");
-    tableBody.innerHTML = ""; // 🔴 مسح البيانات القديمة قبل التحديث
+    tableBody.innerHTML = ""; //  مسح البيانات القديمة قبل التحديث
 
     cars.forEach(car => {
         const row = document.createElement("tr");
@@ -209,7 +223,7 @@ function updateTable(cars) {
         tableBody.appendChild(row);
     });
 }
-// ✅ دالة لإضافة السيارة الجديدة مباشرة إلى الجدول دون إعادة تحميل القائمة كاملة
+//  دالة لإضافة السيارة الجديدة مباشرة إلى الجدول دون إعادة تحميل القائمة كاملة
 function addCarToTable(car) {
     const tableBody = document.getElementById("car-list");
 
@@ -236,7 +250,7 @@ function addCarToTable(car) {
 }
 
 
-// ✅ دالة لعرض الرسائل للمستخدم
+//  دالة لعرض الرسائل للمستخدم
 function showMessage(message, isSuccess) {
     let messageBox = document.getElementById("message-box");
     messageBox.textContent = message;
@@ -274,6 +288,13 @@ window.addEventListener('resize', () => {
         sidebar.classList.remove('active');
     }
 });
+
+
+
+
+
+
+
 
 // تبديل المحتوى
 function chiked(num) {

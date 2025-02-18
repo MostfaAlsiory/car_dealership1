@@ -3,6 +3,7 @@ body {
     background: #f4f4f4;
     margin: 0;
     padding: 0;
+    direction: rtl;
 }
 
 .container {
@@ -36,7 +37,7 @@ button {
 }
 
 button {
-    background: #007BFF;
+    background: #34495e;
     color: #fff;
     border: none;
     cursor: pointer;
