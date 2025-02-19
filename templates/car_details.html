@@ -27,12 +27,10 @@
     <!-- تفاصيل السيارة -->
     <div class="container">
         <div class="car-gallery">
-            <img id="main-image" src="static/upload/{{ car[6] }}" alt="{{ car[1] }} {{ car[2] }}">
-            <!-- car[6] = image_url -->
+
             <div class="thumbnails">
-                <img src="static/upload/{{ car[6] }}" onclick="changeImage(this)">
-                <img src="static/upload/{{ car[7] }}" onclick="changeImage(this)"> <!-- car[7] = image_url2 -->
-                <img src="static/upload/{{ car[8] }}" onclick="changeImage(this)"> <!-- car[8] = image_url3 -->
+                <img src="{{ url_for('static', filename='upload/' + car[8]) }}" alt="{{ car[1] }} {{ car[2] }}">
+
             </div>
         </div>
 
@@ -42,16 +40,15 @@
             <p><strong> نوع الوقود:</strong> {{ car[5] }}</p>
             <p><strong>القوة:</strong> {{ car[6] }} حصان</p>
             <p><strong>الفئة:</strong> {{ car[11] }}</p>
-
             <p><strong>الاستهلاك:</strong> {{ car[7] }} كم/لتر</p>
             <p><strong> الوصف:</strong> {{ car[10] }}</p>
-
-            <a href="/bookings?car_id={{ car[0] }}& car_name={{ car[1] }} {{ car[2] }}" class="btn">
+            <a href="/bookings?car_id={{ car[0] }} & car_name={{ car[1] }} {{ car[2] }}" class="btn">
                 احجز هذه السيارة
             </a>
 
         </div>
     </div>
+
 
     <!-- قسم المراجعات -->
     <section class="reviews">
@@ -64,7 +61,7 @@
                 <div class="review-item">
                     <h4>{{ review[2] }}</h4> <!-- review[2] = user_name -->
                     <p class="rating">التقييم: <span class="stars">{% for _ in range(review[3]) %}⭐{% endfor %}</span>
-                    </p> <!-- review[3] = rating -->
+                    </p>
                     <p>{{ review[4] }}</p> <!-- review[4] = review_text -->
                 </div>
                 {% else %}
@@ -82,11 +79,11 @@
 
                     <label for="rating">التقييم:</label>
                     <div class="rating-stars">
-                        <span data-value="1">&#9733;</span>
-                        <span data-value="2">&#9733;</span>
-                        <span data-value="3">&#9733;</span>
-                        <span data-value="4">&#9733;</span>
-                        <span data-value="5">&#9733;</span>
+                        <span data-value="1" class="star">&#9733;</span>
+                        <span data-value="2" class="star">&#9733;</span>
+                        <span data-value="3" class="star">&#9733;</span>
+                        <span data-value="4" class="star">&#9733;</span>
+                        <span data-value="5" class="star">&#9733;</span>
                     </div>
                     <input type="hidden" id="rating">
 
@@ -98,6 +95,7 @@
             </div>
         </div>
     </section>
+
 
     <!-- الفوتر -->
     <footer class="footer">
