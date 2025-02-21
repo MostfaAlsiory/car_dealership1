@@ -79,7 +79,9 @@ def sitemap():
     return send_from_directory('.', 'sitemap.xml')
 
 
-
+@app.route('/robots.txt')
+def robots():
+    return Response("User-agent: *\nDisallow:", mimetype="text/plain")
 
 
 
