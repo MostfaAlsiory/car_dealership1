@@ -1,5 +1,5 @@
 import plotly.express as px
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify,flash
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify,flash,send_from_directory
 import psycopg2
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -74,8 +74,9 @@ def login_user(username, password):
 
 
 
-
-
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory('.', 'sitemap.xml')
 
 
 
