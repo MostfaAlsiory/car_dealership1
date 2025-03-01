@@ -20,10 +20,10 @@ def allowed_file(filename):
 # تعديل الاتصال بقاعدة البيانات لاستخدام PostgreSQL
 def get_db_connection():
     conn = psycopg2.connect(
-        host="dpg-cudl8o56l47c73afcvcg-a.oregon-postgres.render.com",
-        dbname="car_dealership_cf5y",  # اسم قاعدة البيانات
-        user="car_dealership_cf5y_user",  # اسم المستخدم
-        password="igDrhbTPC8BY2bI5huadxxjinYV7QrJc",  # كلمة المرور
+        host="dpg-cv1obhtsvqrc738pkmh0-a.oregon-postgres.render.com",
+        dbname="car_dealership_tgov",  # اسم قاعدة البيانات
+        user="car_dealership_tgov_user",  # اسم المستخدم
+        password="MLk96kZaKtjJR60PlOnlfmiDDgO25y5s",  # كلمة المرور
         port="5432"  # أو رقم المنفذ الذي تستخدمه
     )
     return conn
