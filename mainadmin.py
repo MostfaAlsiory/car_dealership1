@@ -1,19 +1,32 @@
-import plotly.express as px
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify,flash,send_from_directory
-import psycopg2
 import plotly.graph_objects as go
 import plotly.io as pio
+import plotly.express as px
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_from_directory
+import psycopg2
 import os
 from werkzeug.utils import secure_filename
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+UPLOAD_FOLDER = 'static/upload'
 
+
+# تهيئة Cloudinary
+cloudinary.config(
+    cloud_name="due2rm5cb",  # استبدل بـ cloud_name الخاص بك
+    api_key="494883843628169",        # استبدل بـ api_key الخاص بك
+    api_secret="TnEHyxax7uSePlBh4EwS8QjJdBs"   # استبدل بـ api_secret الخاص بك
+)
+
+# مجلد مؤقت لحفظ الصور المرفوعة (اختياري، يمكن حذفه إذا لم يكن مطلوبًا)
 UPLOAD_FOLDER = 'static/upload'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-#  التحقق من الامتداد المسموح به
+# التحقق من الامتداد المسموح به
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -29,13 +42,8 @@ def get_db_connection():
     return conn
 
 def get_db_connection1():
-
-    conn = psycopg2.connect(host="localhost",dbname="car_dealership",  user="postgres",  password="root", port="5432" )
+    conn = psycopg2.connect(host="localhost", dbname="car_dealership", user="postgres", password="root", port="5432")
     return conn
-
-
-
-
 
 @app.after_request
 def add_header(response):
@@ -44,46 +52,31 @@ def add_header(response):
     response.headers["Expires"] = "0"
     return response
 
-
 def login_user(username, password):
     """تسجيل الدخول."""
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
-            # التحقق من المستخدم بالاسم 
-            print("################## true")
+            # التحقق من المستخدم بالاسم
             sql = "SELECT * FROM users WHERE username = %s"
-            cursor.execute(sql,( username,))
+            cursor.execute(sql, (username,))
             user = cursor.fetchone()
-            print(user)
             if user and user[3] == password:  # user[3] هو الحقل الذي يحتوي على كلمة المرور
                 session['id'] = user[0]
                 session['username'] = user[1]
-                print(f"################## {user[3]}")
                 return True, "تم تسجيل الدخول بنجاح!"
             else:
                 return False, "البريد الإلكتروني أو كلمة المرور غير صحيحة."
     except Exception as e:
         return False, f"حدث خطأ أثناء تسجيل الدخول: {str(e)}"
 
-
-
-
-
-
-
-
-
 @app.route('/sitemap.xml')
 def sitemap():
     return send_from_directory('.', 'sitemap.xml')
 
-
 @app.route('/robots.txt')
 def robots():
     return Response("User-agent: *\nDisallow:", mimetype="text/plain")
-
-
 
 @app.route('/')
 def home():
@@ -94,24 +87,16 @@ def home():
     conn.close()
     return render_template('home.html', featured_cars=featured_cars)
 
-
 @app.route('/car/<int:car_id>')
 def car_details(car_id):
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute("SELECT * FROM cars WHERE id = %s", (car_id,))
-        car = cursor.fetchone()  # car هي tuple
+        car = cursor.fetchone()
         cursor.execute("SELECT * FROM reviews WHERE car_id = %s", (car_id,))
-        reviews = cursor.fetchall()  # reviews هي قائمة من الـ tuples
+        reviews = cursor.fetchall()
     conn.close()
-    # إذا كنت تستخدم الفهارس للوصول إلى الحقول
-    if car:
-        car_id = car[0]  # الحقل الأول (id)
-        car_brand = car[1]  # الحقل الثاني (brand)
-        car_model = car[2]  # الحقل الثالث (model)
-        # يمكنني إضافة بقية الحقول هنا بنفس الطريقة
     return render_template('car_details.html', car=car, reviews=reviews)
-
 
 @app.route('/compare')
 def compare():
@@ -144,15 +129,11 @@ def compare():
         car_list = []
     return render_template('compare.html', cars=car_list)
 
-
-
 @app.route('/bookings')
 def booking():
-    car_id=request.args.get("car_id")
-    car_name=request.args.get("car_name")
-    print(car_name)
-    return render_template("booking.html",car_id=car_id,car_name=car_name)
-
+    car_id = request.args.get("car_id")
+    car_name = request.args.get("car_name")
+    return render_template("booking.html", car_id=car_id, car_name=car_name)
 
 @app.route('/get_cars4', methods=['GET'])
 def get_cars4():
@@ -178,8 +159,6 @@ def get_cars4():
     cursor = conn.cursor()
     cursor.execute(query, params)
     rows = cursor.fetchall()
-
-    # تحويل النتائج إلى قائمة من القواميس
     cars = []
     for row in rows:
         car = {
@@ -196,8 +175,6 @@ def get_cars4():
     conn.close()
     return jsonify(cars)
 
-
-
 @app.route('/submit_review', methods=['POST'])
 def submit_review():
     try:
@@ -212,7 +189,7 @@ def submit_review():
             RETURNING id, car_id, user_name, rating, review_text, created_at
         """
         cursor.execute(sql, (data['car_id'], data['user_name'], data['rating'], data['review_text']))
-        review = cursor.fetchone()  
+        review = cursor.fetchone()
         conn.commit()
         cursor.close()
         conn.close()
@@ -220,10 +197,8 @@ def submit_review():
             "success": True,
             "message": "تم إرسال التقييم بنجاح!",
         })
-
     except Exception as e:
         return jsonify({"success": False, "message": f"حدث خطأ: {str(e)}"}), 500
-
 
 @app.route('/reviews/<int:car_id>')
 def reviews_page(car_id):
@@ -243,11 +218,9 @@ def reviews_page(car_id):
         cursor.close()
         conn.close()
 
-
-
 @app.route('/submit_booking', methods=['POST'])
 def submit_booking():
-    data = request.json  # استقبال البيانات من الطلب
+    data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
     sql = """
@@ -271,83 +244,37 @@ def submit_booking():
 def login_page():
     return render_template("admin/login.html")
 
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    global admin_name
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print(f"{username,password}")
         success, message = login_user(username, password)
-        if success :
-            admin_name=session['username']
-        else:
-            admin_name=""
         flash(message, "success" if success else "danger")
-        return redirect('/admin' if success    else   '/login')  #هنا لا يتم دخول الاالمستخدمين المدراء فقط
-   
+        return redirect('/admin' if success else '/login')
     return render_template('admin/login.html')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @app.route('/admin')
 def admin_dashboard():
     if 'username' not in session:
         return redirect(url_for('login'))
-    
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute('SELECT COUNT(*) FROM cars')
         num_cars = cursor.fetchone()[0]
-
         cursor.execute('SELECT COUNT(*) FROM bookings')
         num_bookings = cursor.fetchone()[0]
-
         cursor.execute('SELECT COUNT(*) FROM reviews')
         num_reviews = cursor.fetchone()[0]
-
-        # Example Plotly graph
-        fig = go.Figure(data=[
-            go.Bar(name='Cars', x=['Cars'], y=[num_cars]),
-            go.Bar(name='Bookings', x=['Bookings'], y=[num_bookings]),
-            go.Bar(name='Reviews', x=['Reviews'], y=[num_reviews])
-        ])
-        fig.update_layout(
-            title='Dashboard',
-            autosize=True,
-            margin=dict(l=20, r=20, t=50, b=20),
-            xaxis_title='Categories',
-            yaxis_title='Counts',
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-        )
-        graph_html = pio.to_html(fig, full_html=False, config={'responsive': True})
-        conn.close()
-        return render_template('admin/dashboard.html', graph_html=graph_html, num_cars=num_cars, num_bookings=num_bookings, num_reviews=num_reviews)
-
+    conn.close()
+    return render_template('admin/dashboard.html', num_cars=num_cars, num_bookings=num_bookings, num_reviews=num_reviews)
 
 @app.route('/get_bookings')
 def get_bookings():
     conn = get_db_connection()
     with conn.cursor() as cursor:
         cursor.execute("""
-            SELECT bookings.id, bookings.customer_name, cars.brand, cars.model,bookings.customer_email,bookings.phone_number, bookings.booking_date, bookings.status
+            SELECT bookings.id, bookings.customer_name, cars.brand, cars.model, bookings.customer_email, bookings.phone_number, bookings.booking_date, bookings.status
             FROM bookings
             JOIN cars ON bookings.car_id = cars.id
         """)
@@ -378,8 +305,6 @@ def get_cars():
         conn.close()
         return jsonify(cars)
 
-
-#  مسار لرفع الصور
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
     if 'image' not in request.files:
@@ -388,12 +313,11 @@ def upload_image():
     if file.filename == '':
         return jsonify({"success": False, "message": "يجب اختيار صورة"})
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        return jsonify({"success": True, "filename": filename})
+        # رفع الصورة إلى Cloudinary
+        response = cloudinary.uploader.upload(file)
+        image_url = response['secure_url']  # الحصول على رابط الصورة
+        return jsonify({"success": True, "image_url": image_url})
     return jsonify({"success": False, "message": "صيغة الملف غير مدعومة"})
-
 
 @app.route('/add_car', methods=['POST'])
 def add_car():
@@ -406,14 +330,14 @@ def add_car():
         fuel_type = request.form['fuel_type']
         engine_power = request.form['engine_power']
         fuel_efficiency = request.form['fuel_efficiency']
-        image_url = request.form.get('image_url', '')  #  اسم الصورة بعد الرفع
+        image_url = request.form.get('image_url', '')  # رابط الصورة من Cloudinary
         description = request.form['description']
         category = request.form['category']
         with conn.cursor() as cursor:
             sql = """INSERT INTO cars (brand, model, year, price, fuel_type, engine_power, fuel_efficiency, image_url, description, category) 
                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id"""
             cursor.execute(sql, (brand, model, year, price, fuel_type, engine_power, fuel_efficiency, image_url, description, category))
-            car_id = cursor.fetchone()[0]  #  جلب معرف السيارة الجديدة
+            car_id = cursor.fetchone()[0]
             conn.commit()
         return jsonify({
             "success": True,
@@ -427,7 +351,7 @@ def add_car():
                 "fuel_type": fuel_type,
                 "engine_power": engine_power,
                 "fuel_efficiency": fuel_efficiency,
-                "image_url": f"/static/upload/{image_url}",
+                "image_url": image_url,
                 "description": description,
                 "category": category
             }
@@ -436,7 +360,6 @@ def add_car():
         return jsonify({"success": False, "message": f"حدث خطأ: {str(e)}"})
     finally:
         conn.close()
-
 
 @app.route('/delete_car/<int:car_id>', methods=['POST'])
 def delete_car(car_id):
@@ -455,9 +378,6 @@ def delete_car(car_id):
     finally:
         conn.close()
 
-
-
-# جلب بيانات سيارة محددة
 @app.route('/get_car1/<int:car_id>')
 def get_car1(car_id):
     conn = get_db_connection()
@@ -481,7 +401,6 @@ def get_car1(car_id):
         })
     return jsonify({'error': 'Car not found'}), 404
 
-# تحديث بيانات السيارة
 @app.route('/update_car/<int:car_id>', methods=['POST'])
 def update_car(car_id):
     data = request.get_json()
@@ -490,7 +409,7 @@ def update_car(car_id):
         with conn.cursor() as cursor:
             sql = """UPDATE cars SET 
                     brand=%s, model=%s, year=%s, price=%s,
-                    fuel_type=%s, engine_power=%s, fuel_efficiency=%s,image_url=%s,
+                    fuel_type=%s, engine_power=%s, fuel_efficiency=%s, image_url=%s,
                     description=%s, category=%s
                     WHERE id=%s"""
             cursor.execute(sql, (
@@ -513,6 +432,7 @@ def update_car(car_id):
         return jsonify({'success': False}), 500
     finally:
         conn.close()
+
 
 
 @app.route('/get_reviews')
